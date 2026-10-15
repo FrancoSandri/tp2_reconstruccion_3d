@@ -1,0 +1,17 @@
+Comparación de métodos de disparidad en stereodemo
+Par 13 (datasets/stereo_stitch_charuco/rect), 1280x720
+
+Parámetros comunes de SGBM (iguales al notebook, sección 6):
+  Num Disparities = 160, Mode = MODE_SGBM_3WAY, P1 ≈ 200, P2 ≈ 800,
+  Uniqueness Ratio = 10, SpeckleWindowSize = 200, SpeckleRange = 2,
+  Disp12MaxDiff = 1, PreFilterCap = 63
+
+Método              | Parámetro que cambia      | Tiempo      | Carpeta
+--------------------|---------------------------|-------------|---------------------------
+SGBM                | Block Size = 5            | 173,2 ms    | sgma y block con 5
+SGBM                | Block Size = 9            | 143,1 ms    | sgbm y block con 9
+CREStereo           | Shape 640x480, Iter. 5,   | 4882,2 ms   | cre stereo
+                    | Mode combined             |             |
+
+Medición anterior de CREStereo con Shape 640x480, Iterations 5: 6435,9 ms
+(con speckle por defecto; sirve solo como referencia).
