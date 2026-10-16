@@ -1,6 +1,6 @@
 # TP2 Reconstrucción 3D: contexto de trabajo
 
-Estado al 16/10/2026 (último commit `ad88081`). Resume lo hecho, los resultados y lo que
+Estado al 16/10/2026 (último commit `0a6b0ad`). Resume lo hecho, los resultados y lo que
 falta, para que cualquiera del grupo pueda seguir desde acá en otra computadora.
 
 Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
@@ -9,7 +9,7 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
 
 | Etapa del TP | Estado | Dónde |
 |---|---|---|
-| 4.1 Calibración y rectificación | **Hecha** con la tool `calib-stereo` a 1280x720. Falta reportar el RMS en el notebook (ver 4.1) | `calibration/`, notebook "Carga de la calibración" y "Rectificación" |
+| 4.1 Calibración y rectificación | **Hecha** con la tool `calib-stereo` a 1280x720; RMS 1,27 px recalculado en el notebook | `calibration/`, `datasets/calib/`, notebook "Carga de la calibración", "Error de reproyección de la calibración" y "Rectificación" |
 | 4.2.1 Disparidad | **Hecha** con SGBM; parámetros ajustados y comparados en `stereodemo` | notebook "Disparidad con SGBM", `imgs/` |
 | 4.2.2 Nube local | **Hecha** con `reprojectImageTo3D(disp, Q)` | notebook "Nube de puntos local" |
 | 4.2.3 Pose global | **Hecha** con ChArUco + `solvePnP` (IPPE + refinamiento LM) | notebook "Tablero ChArUco" y "Pose global" |
@@ -44,7 +44,8 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
 - Tras rectificar: f = 405,9 px, centro (631,0, 352,4). z = f·B/d ≈ 24 422 / d (mm, px).
 
 **Checkerboard de calibración** (`datasets/calib/`): 10x7 casilleros, o sea **9x6 esquinas
-internas**. Casillero ≈ **28 mm**, inferido comparando con el baseline del pkl (confirmar con regla).
+internas**. Casillero de **28 mm**: recalibrando con ese valor el baseline da 60,19 mm contra 60,17 del pkl
+(conviene confirmarlo con regla para no decir "inferido" en el informe).
 
 **ChArUco de las capturas**: `DICT_5X5_100`, 9x13 casilleros, casillero 42,0 mm, marcador
 31,5 mm (está impreso en el borde del tablero). 96 esquinas internas.
@@ -57,10 +58,12 @@ mode=SGBM_3WAY`. Se corre en color; en `stereodemo` (que pasa a gris) el equival
 ## 4. Resultados (para el informe)
 
 ### 4.1 Calibración
-- RMS estéreo recalculado con las fotos de `datasets/calib/` (script aparte, `stereoCalibrate`
-  con flags=0, 29 de 30 pares; en el par 7 no se detecta el tablero en la izquierda):
-  **1,27 px**. Monocular: izquierda 0,70 px, derecha 0,45 px. Reproduce los intrínsecos del pkl
-  (fx 403,26 vs 403,15). Alan está agregando esta sección al notebook.
+- **RMS estéreo 1,27 px** (sección "Error de reproyección de la calibración" del notebook):
+  `stereoCalibrate` con flags=0 sobre las fotos de `datasets/calib/`, 29 de 30 pares (en el par 7
+  `findChessboardCorners` no detecta el tablero en la imagen izquierda, probablemente por un
+  reflejo). Reproduce el pkl: fx 403,26 vs 403,15 px (izq.), 401,82 vs 401,72 px (der.),
+  baseline 60,19 vs 60,17 mm. Referencia: la calibración de la cátedra daba 1,055 px.
+  Monocular (calculado aparte, no está en el notebook): izquierda 0,70 px, derecha 0,45 px.
 - Verificación independiente con el ChArUco (en el notebook): RMS izquierda (PnP) 0,495 px,
   derecha vía `R, T` 1,344 px; lado del casillero triangulado 42,12 mm (real 42,0, error 0,3 %).
 - `dy` residual tras rectificar: 0,2 a 1,8 px, siempre del mismo signo (sistemático), mayor en
@@ -93,8 +96,8 @@ el notebook: 48 % (par 0), 57 % (par 13), 66 % (par 25).
 
 1. **Medida real del peluche** (alto desde la base a la punta de la cabeza, ancho de punta a punta
    de las orejas): cargar `REAL_ALTO_MM` y `REAL_ANCHO_MM` en la celda de medición.
-2. **RMS de la calibración en el notebook** (Alan) y `datasets/calib/checkerboard.txt` con el
-   tablero (9x6 esquinas, casillero en mm).
+2. **Medir el casillero del checkerboard con regla** (debería dar 28 mm) y agregar
+   `datasets/calib/checkerboard.txt` (9x6 esquinas, casillero en mm), como el de la cátedra.
 3. **Entregables del repo**: `README.md` (qué es, estructura, instalación, cómo correr),
    `requirements.txt` con versiones y `.gitignore` (`.venv/`, `__pycache__/`, `desktop.ini`).
 4. **Informe** (8 páginas máximo): Introducción y Marco teórico, Metodología, Resultados y
