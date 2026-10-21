@@ -1,0 +1,11 @@
+# Python 3.13 (probado con 3.13.5)
+numpy==2.2.6
+opencv-contrib-python==4.13.0.92   # no usar 4.12: rompe el módulo ArUco
+open3d==0.20.0
+matplotlib==3.10.5
+ipykernel==6.30.1
+i308-utils @ git+https://github.com/udesa-vision/i308-utils.git@916f9e55ae77bd846f85b03ab12bcd54bc20f239
+
+# Opcional: ajuste interactivo de disparidad y comparación con CREStereo
+# stereodemo==0.7
+# onnxruntime==1.27.0

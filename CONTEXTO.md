@@ -1,6 +1,6 @@
 # TP2 Reconstrucción 3D: contexto de trabajo
 
-Estado al 16/10/2026 (último commit `0a6b0ad`). Resume lo hecho, los resultados y lo que
+Estado al 21/10/2026 (último commit `0cc3999`; números de la corrida de Franco, `85b7b44`). Resume lo hecho, los resultados y lo que
 falta, para que cualquiera del grupo pueda seguir desde acá en otra computadora.
 
 Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
@@ -9,14 +9,15 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
 
 | Etapa del TP | Estado | Dónde |
 |---|---|---|
-| 4.1 Calibración y rectificación | **Hecha** con la tool `calib-stereo` a 1280x720; RMS 1,27 px recalculado en el notebook | `calibration/`, `datasets/calib/`, notebook "Carga de la calibración", "Error de reproyección de la calibración" y "Rectificación" |
+| 4.1 Calibración y rectificación | **Hecha** con la tool `calib-stereo` a 1280x720; RMS 1,25 px recalculado en el notebook | `calibration/`, `datasets/calib/`, notebook "Carga de la calibración", "Error de reproyección de la calibración" y "Rectificación" |
 | 4.2.1 Disparidad | **Hecha** con SGBM; parámetros ajustados y comparados en `stereodemo` | notebook "Disparidad con SGBM", `imgs/` |
 | 4.2.2 Nube local | **Hecha** con `reprojectImageTo3D(disp, Q)` | notebook "Nube de puntos local" |
 | 4.2.3 Pose global | **Hecha** con ChArUco + `solvePnP` (IPPE + refinamiento LM) | notebook "Tablero ChArUco" y "Pose global" |
 | 4.2.4 Paso al marco global | **Hecha** (incluye el paso por `R1`) | notebook "Pose global" |
 | 4.3 Fusión y optimización | **Hecha** en Open3D; `.ply` binario exportado | notebook "Fusión", `outputs/stitch_final.ply` |
-| 5 Medición métrica | **Hecha**; falta la medida real para el error relativo | notebook "Medición métrica" |
-| Informe | **Sin empezar** | |
+| 5 Medición métrica | **Hecha**, con error relativo contra la medida real | notebook "Medición métrica" |
+| Informe | **Escrito** (LaTeX, ~6 páginas) | `informe/` |
+| README, requirements, .gitignore | **Hechos** | raíz del repo |
 
 ## 2. Estructura del repo
 
@@ -33,9 +34,13 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
   cátedra (Buda, 1080p). No se usa.
 - `imgs/`: capturas de `stereodemo` (par 13: SGBM bloque 5, SGBM bloque 9, CREStereo),
   `tiempos_disparidad.txt` y `meshlab/` (frente, costado y atrás de la nube final).
-- `outputs/stitch_final.ply`: nube final (4,9 MB, ~183 000 puntos, binario). Es el entregable.
+- `outputs/stitch_final.ply`: nube final (4,7 MB, 175 791 puntos, binario). Es el entregable.
+- `informe/`: `embon_sandri_yeger-tp2-informe.tex` y sus figuras en `img/` (se compila en Overleaf con pdfLaTeX).
+  La versión de referencia es la de Overleaf (ahí se siguen haciendo cambios); antes de entregar
+  hay que copiar el `.tex` de Overleaf al repo.
+  La copia de `../informe_tp2_overleaf/` y el zip son del 20/10 y están desactualizados.
 - `code_examples/`: ejemplos de la cátedra (charuco y disparidad). No se tocan.
-- `src/stereo_matching.py`: vacío, se puede borrar.
+- `README.md` y `requirements.txt` (versiones del entorno conda de WSL).
 
 ## 3. Datos clave
 
@@ -44,8 +49,7 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
 - Tras rectificar: f = 405,9 px, centro (631,0, 352,4). z = f·B/d ≈ 24 422 / d (mm, px).
 
 **Checkerboard de calibración** (`datasets/calib/`): 10x7 casilleros, o sea **9x6 esquinas
-internas**. Casillero de **28 mm**: recalibrando con ese valor el baseline da 60,19 mm contra 60,17 del pkl
-(conviene confirmarlo con regla para no decir "inferido" en el informe).
+internas**. Casillero de **28 mm**: recalibrando con ese valor el baseline da 60,18 mm contra 60,17 del pkl.
 
 **ChArUco de las capturas**: `DICT_5X5_100`, 9x13 casilleros, casillero 42,0 mm, marcador
 31,5 mm (está impreso en el borde del tablero). 96 esquinas internas.
@@ -57,16 +61,20 @@ mode=SGBM_3WAY`. Se corre en color; en `stereodemo` (que pasa a gris) el equival
 
 ## 4. Resultados (para el informe)
 
+Corrida de `85b7b44` (Franco). Con otra versión de OpenCV algunos números cambiaron respecto de
+corridas anteriores (por ejemplo el par 1 deja de detectarse); el informe usa estos.
+
 ### 4.1 Calibración
-- **RMS estéreo 1,27 px** (sección "Error de reproyección de la calibración" del notebook):
+- **RMS estéreo 1,25 px** (1,248; sección "Error de reproyección de la calibración" del notebook):
   `stereoCalibrate` con flags=0 sobre las fotos de `datasets/calib/`, 29 de 30 pares (en el par 7
   `findChessboardCorners` no detecta el tablero en la imagen izquierda, probablemente por un
-  reflejo). Reproduce el pkl: fx 403,26 vs 403,15 px (izq.), 401,82 vs 401,72 px (der.),
-  baseline 60,19 vs 60,17 mm. Referencia: la calibración de la cátedra daba 1,055 px.
+  reflejo). Reproduce el pkl: fx 402,05 vs 403,15 px (izq.), 400,82 vs 401,72 px (der.),
+  baseline 60,18 vs 60,17 mm. Referencia: la calibración de la cátedra daba 1,055 px.
   Monocular (calculado aparte, no está en el notebook): izquierda 0,70 px, derecha 0,45 px.
-- Verificación independiente con el ChArUco (en el notebook): RMS izquierda (PnP) 0,495 px,
-  derecha vía `R, T` 1,344 px; lado del casillero triangulado 42,12 mm (real 42,0, error 0,3 %).
-- `dy` residual tras rectificar: 0,2 a 1,8 px, siempre del mismo signo (sistemático), mayor en
+- Verificación independiente con el ChArUco (en el notebook): RMS izquierda (PnP) 0,478 px,
+  derecha vía `R, T` 1,310 px; lado del casillero triangulado 42,13 mm de mediana (media
+  42,11 ± 1,32; real 42,0, error 0,3 %).
+- `dy` residual tras rectificar: 0,2 a 1,5 px, siempre del mismo signo (sistemático), mayor en
   los pares 0 a 7.
 
 ### 4.2 Disparidad (par 13, en `stereodemo`)
@@ -76,38 +84,35 @@ mode=SGBM_3WAY`. Se corre en color; en `stereodemo` (que pasa a gris) el equival
 | SGBM bloque 9 | 143 ms | más suave, bordes engordados (la diferencia de tiempo es ruido) |
 | CREStereo 640x480, 5 iter. | 4882 ms | denso y sin huecos, pero ~30x más lento e inventa en zonas sin textura |
 
-Se eligió SGBM bloque 5: los huecos se compensan con las 25 vistas. Disparidad válida en
-el notebook: 48 % (par 0), 57 % (par 13), 66 % (par 25).
+Se eligió SGBM bloque 5: los huecos se compensan con las otras vistas. Disparidad válida en
+el notebook: 48 a 64 % según el par (43 % de los píxeles con punto 3D en el par 13).
 
 ### 4.3 Nube local, pose y fusión
-- Chequeo de fórmula: `reprojectImageTo3D` coincide exactamente con f·B/d.
-- Pose: 25 de 27 pares aceptados (el 20 tiene RMS PnP 16 px y el 25 no detecta el tablero).
-  Pares dudosos que entraron: 1 (10 esquinas) y 19 (RMS 1,56 px).
-- Puntos por etapa: 9 500 201 → caja 1 602 460 → voxel 2 mm 250 180 → outliers 243 778 →
-  sin plano del tablero ~186 000 → cluster principal **~183 000** (varía ±1 % por RANSAC).
+- Chequeo de fórmula: `reprojectImageTo3D` coincide exactamente con f·B/d (d = 55 px → z = 444,0 mm).
+- Pose: **24 de 27 pares aceptados** (1 y 25 no detectan el tablero, el 20 tiene RMS PnP 6,06 px).
+  RMS PnP de los aceptados entre 0,23 y 1,80 px. Par dudoso que entró: 19 (RMS 1,80 px, 26 de 38
+  esquinas). El par 1 está en el límite: con otra versión de OpenCV entra con 10 esquinas y el
+  alto cambia solo 0,2 mm (279,9 vs 279,7).
+- Puntos por etapa: 9 282 487 → caja 1 510 554 → voxel 2 mm 239 309 → outliers 233 096 →
+  sin plano del tablero 180 711 → cluster principal **175 791** (varía ±1 % por RANSAC).
 
 ### 4.4 Medición
-- **Alto 279,9 mm** (p99,5 de la distancia al plano del tablero ajustado; máximo 285,8 mm).
-- **Ancho 295,4 mm** (de oreja a oreja, `minAreaRect` sobre el plano), **profundidad 172,7 mm**.
-- El tablero reconstruido por estéreo queda ~7 mm por encima de z = 0 del PnP (sesgo sistemático
-  de ~1,5 % de la distancia, punto para la discusión). Medir respecto al plano ajustado lo cancela.
+| | Estimado | Real (regla) | Error |
+|---|---|---|---|
+| Alto (p99,5 de la distancia al plano ajustado; máx. 286,0) | 279,7 mm | 290 mm | −3,5 % |
+| Ancho (orejas, `minAreaRect` sobre el plano) | 294,0 mm | 300 mm | −2,0 % |
+| Profundidad | 172,5 mm | 170 mm | +1,4 % |
+
+- El tablero reconstruido por estéreo queda 10,4 mm por encima de z = 0 del PnP (sesgo sistemático
+  de ~2 % de la distancia, está en la discusión). Medir respecto al plano ajustado lo cancela.
 
 ## 5. Pendientes
 
-1. **Medida real del peluche** (alto desde la base a la punta de la cabeza, ancho de punta a punta
-   de las orejas): cargar `REAL_ALTO_MM` y `REAL_ANCHO_MM` en la celda de medición.
-2. **Medir el casillero del checkerboard con regla** (debería dar 28 mm) y agregar
-   `datasets/calib/checkerboard.txt` (9x6 esquinas, casillero en mm), como el de la cátedra.
-3. **Entregables del repo**: `README.md` (qué es, estructura, instalación, cómo correr),
-   `requirements.txt` con versiones y `.gitignore` (`.venv/`, `__pycache__/`, `desktop.ini`).
-4. **Informe** (8 páginas máximo): Introducción y Marco teórico, Metodología, Resultados y
-   Discusión. Las preguntas a responder están en las páginas 7 y 8 del enunciado.
-5. **Entrega**: `.ply` en un link de descarga directa (Drive) y el dataset propio en otro link.
-6. Opcionales: probar sin los pares 1 y 19 (robustez), ICP, mallado con Poisson.
-
-Puntos para la discusión: `dy` sistemático de la rectificación, sesgo de ~7 mm entre estéreo y
-PnP, huecos por oclusión y por el ojo brillante, flying pixels grises en el borde de las orejas,
-SGBM contra CREStereo, pares con pose dudosa.
+1. **Entrega**: `.ply` en un link de descarga directa (Drive) y el dataset propio en otro link;
+   después reemplazar los "_pendiente_" de la sección Entregables del `README.md`.
+2. **Informe**: confirmar en Overleaf que entra en 8 páginas y copiar la versión final al repo
+   (`informe/embon_sandri_yeger-tp2-informe.tex`).
+3. Opcionales: ICP, mallado con Poisson.
 
 ## 6. Entorno
 
@@ -122,7 +127,8 @@ onnxruntime, torch, i308-utils y jupyter.
 - OpenCV 4.12 rompe el módulo ArUco: usar 4.11 o 4.13.
 - MeshLab está instalado en Windows (para mirar el `.ply`: apagar Shading y fondo blanco).
 
-Para correr el notebook: activar conda, `cd repo/notebooks`, `jupyter lab`. Para ajustar
+Para correr el notebook: activar conda y abrir `repo/notebooks/tp2.ipynb` en VS Code con ese kernel
+(el conda no tiene `jupyterlab` instalado). Para ajustar
 disparidad: desde `repo/`, `stereodemo datasets/stereo_stitch_charuco/rect`.
 
 ## 7. Detalles al commitear
@@ -130,7 +136,6 @@ disparidad: desde `repo/`, `stereodemo datasets/stereo_stitch_charuco/rect`.
 - Correr el notebook reescribe `datasets/stereo_stitch_charuco/rect/stereodemo_calibration.json`
   solo con cambios de saltos de línea: descartarlo con
   `git checkout -- datasets/stereo_stitch_charuco/rect/stereodemo_calibration.json`.
-- No subir `.venv/`, `notebooks/__pycache__/` ni los `desktop.ini` de OneDrive: agregar archivos
-  de a uno (no `git add .`) hasta que exista el `.gitignore`.
+- `.venv/`, `__pycache__/` y los `desktop.ini` de OneDrive ya están en el `.gitignore`.
 - Hacer `git pull` antes de tocar el notebook: los `.ipynb` no se mezclan bien si dos personas
   los editan a la vez.
