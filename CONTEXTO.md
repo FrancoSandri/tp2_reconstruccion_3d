@@ -1,6 +1,6 @@
 # TP2 Reconstrucción 3D: contexto de trabajo
 
-Estado al 22/10/2026 (último commit `3651851`; números de la corrida de Franco, `85b7b44`). Resume lo hecho, los resultados y lo que
+Estado al 22/10/2026 (último commit `973ff2d`; números de la corrida de Franco, `85b7b44`). Resume lo hecho, los resultados y lo que
 falta, para que cualquiera del grupo pueda seguir desde acá en otra computadora.
 
 Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
@@ -16,7 +16,7 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
 | 4.2.4 Paso al marco global | **Hecha** (incluye el paso por `R1`) | notebook "Pose global" |
 | 4.3 Fusión y optimización | **Hecha** en Open3D; `.ply` binario exportado | notebook "Fusión", `outputs/stitch_final.ply` |
 | 5 Medición métrica | **Hecha**, con error relativo contra la medida real | notebook "Medición métrica" |
-| Informe | **Escrito** (LaTeX, ~6 páginas) | `informe/` |
+| Informe | **Final** (LaTeX, menos de 8 páginas, confirmado en Overleaf) | `informe/` |
 | README, requirements, .gitignore | **Hechos** | raíz del repo |
 | Links de entrega (Drive) | **Hechos**: `.ply` y zip del dataset, públicos con el link | README, sección Entregables |
 
@@ -37,8 +37,8 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
   `tiempos_disparidad.txt` y `meshlab/` (frente, costado y atrás de la nube final).
 - `outputs/stitch_final.ply`: nube final (4,7 MB, 175 791 puntos, binario). Es el entregable.
 - `informe/`: `embon_sandri_yeger-tp2-informe.tex` y sus figuras en `img/` (se compila en Overleaf con pdfLaTeX).
-  La versión de referencia es la de Overleaf (ahí se siguen haciendo cambios); antes de entregar
-  hay que copiar el `.tex` de Overleaf al repo.
+  La versión del repo es la final (igual a la de Overleaf al 22/10). Si se vuelve a tocar en
+  Overleaf, copiar el `.tex` al repo.
   La copia de `../informe_tp2_overleaf/` y el zip son del 20/10 y están desactualizados.
 - `code_examples/`: ejemplos de la cátedra (charuco y disparidad). No se tocan.
 - `README.md` y `requirements.txt` (versiones del entorno conda de WSL).
@@ -109,9 +109,7 @@ el notebook: 48 a 64 % según el par (43 % de los píxeles con punto 3D en el pa
 
 ## 5. Pendientes
 
-1. **Informe**: confirmar en Overleaf que entra en 8 páginas (no se pudo compilar en WSL, no
-   hay LaTeX instalado).
-2. Opcionales (por ahora no se hacen): ICP, mallado con Poisson.
+No queda nada obligatorio. Opcionales (por ahora no se hacen): ICP, mallado con Poisson.
 
 Entrega en Drive (hecho el 22/10), carpeta
 [Dataset-tp2-reconstruccion-3d](https://drive.google.com/drive/folders/1YVeUoTn8iDGOQCYMBNBdYpeawiBg1VgT?usp=sharing),
