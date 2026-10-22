@@ -1,6 +1,6 @@
 # TP2 Reconstrucción 3D: contexto de trabajo
 
-Estado al 21/10/2026 (último commit `0cc3999`; números de la corrida de Franco, `85b7b44`). Resume lo hecho, los resultados y lo que
+Estado al 22/10/2026 (último commit `3651851`; números de la corrida de Franco, `85b7b44`). Resume lo hecho, los resultados y lo que
 falta, para que cualquiera del grupo pueda seguir desde acá en otra computadora.
 
 Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
@@ -18,6 +18,7 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
 | 5 Medición métrica | **Hecha**, con error relativo contra la medida real | notebook "Medición métrica" |
 | Informe | **Escrito** (LaTeX, ~6 páginas) | `informe/` |
 | README, requirements, .gitignore | **Hechos** | raíz del repo |
+| Links de entrega (Drive) | **Hechos**: `.ply` y zip del dataset, públicos con el link | README, sección Entregables |
 
 ## 2. Estructura del repo
 
@@ -108,11 +109,18 @@ el notebook: 48 a 64 % según el par (43 % de los píxeles con punto 3D en el pa
 
 ## 5. Pendientes
 
-1. **Entrega**: `.ply` en un link de descarga directa (Drive) y el dataset propio en otro link;
-   después reemplazar los "_pendiente_" de la sección Entregables del `README.md`.
-2. **Informe**: confirmar en Overleaf que entra en 8 páginas y copiar la versión final al repo
-   (`informe/embon_sandri_yeger-tp2-informe.tex`).
-3. Opcionales: ICP, mallado con Poisson.
+1. **Informe**: confirmar en Overleaf que entra en 8 páginas (no se pudo compilar en WSL, no
+   hay LaTeX instalado).
+2. Opcionales (por ahora no se hacen): ICP, mallado con Poisson.
+
+Entrega en Drive (hecho el 22/10), carpeta
+[Dataset-tp2-reconstruccion-3d](https://drive.google.com/drive/folders/1YVeUoTn8iDGOQCYMBNBdYpeawiBg1VgT?usp=sharing),
+con acceso de lector para cualquiera con el link:
+- `stitch_final.ply` (4,7 MB): id `1Ybi883HTbzfYiLK3ib5xr77Oo-P2mrJS`.
+- `dataset_stitch_tp2.zip` (22,8 MB, sin compresión): `datasets/calib/` y
+  `datasets/stereo_stitch_charuco/captures/` con sus rutas. No incluye `rect/` (61 MB, lo genera
+  el notebook). Id `1MptTQNZ2Sqe5Pskws_koW8t22n-sc9yt`.
+Si se regenera el `.ply`, hay que volver a subirlo (reemplazar la versión en Drive mantiene el id).
 
 ## 6. Entorno
 

@@ -81,5 +81,12 @@ La nube final se puede abrir con [MeshLab](https://www.meshlab.net/).
 ## Entregables
 
 - Informe: `informe/embon_sandri_yeger-tp2-informe.tex`.
-- Nube final: `outputs/stitch_final.ply` (link de descarga directa: _pendiente_).
-- Dataset propio: `datasets/calib/` y `datasets/stereo_stitch_charuco/` (link: _pendiente_).
+- Nube final: `outputs/stitch_final.ply`
+  ([descarga directa](https://drive.google.com/uc?export=download&id=1Ybi883HTbzfYiLK3ib5xr77Oo-P2mrJS),
+  4,7 MB).
+- Dataset propio: `datasets/calib/` y `datasets/stereo_stitch_charuco/captures/`
+  ([descarga directa del zip](https://drive.google.com/uc?export=download&id=1MptTQNZ2Sqe5Pskws_koW8t22n-sc9yt),
+  23 MB). Descomprimido en la raíz del repo, cada carpeta queda en su lugar. Los pares
+  rectificados de `rect/` no están en el zip porque los genera el notebook.
+- Carpeta de Drive con los dos archivos:
+  [Dataset-tp2-reconstruccion-3d](https://drive.google.com/drive/folders/1YVeUoTn8iDGOQCYMBNBdYpeawiBg1VgT?usp=sharing).
