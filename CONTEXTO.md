@@ -1,9 +1,25 @@
 # TP2 Reconstrucción 3D: contexto de trabajo
 
-Estado al 22/10/2026 (último commit `973ff2d`; números de la corrida de Franco, `85b7b44`). Resume lo hecho, los resultados y lo que
-falta, para que cualquiera del grupo pueda seguir desde acá en otra computadora.
+Estado al 23/10/2026 (último commit `d25efcb`; números de la corrida de Franco, `85b7b44`). Resume lo hecho, los resultados y lo que
+falta, para que cualquiera del grupo pueda seguir desde acá en otra computadora. Lo último que se hizo está en la sección 0.
 
 Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
+
+## 0. Últimos cambios (en qué estamos trabajando)
+
+- **23/10, Alan** (`1c56173`): notebook opcional `notebooks/opcional.ipynb` con normales y malla de
+  Poisson, y `plot_mesh` en `utils.py`. Ajustes chicos en el informe (rango de disparidad 40–110 px y
+  explicación de por qué el alto y el ancho dan menos que la regla) y en `tp2.ipynb` (comentarios).
+- **23/10, Luis** (`d25efcb`): notebook opcional ejecutado y guardado con salidas, malla en
+  `outputs/stitch_poisson.ply`, y el informe con la malla de Poisson: subsección en Metodología y en
+  Resultados, figura 10, referencias de Poisson y Taubin, conclusión actualizada. Para que las
+  figuras no quedaran después de las referencias se pasaron optimización, MeshLab y Poisson a una
+  columna; el informe quedó en **7 páginas**. Ya está subido a Overleaf.
+- **22/10, Franco**: links de entrega en Drive y README.
+- **21/10, Luis**: README, `requirements.txt` y `.gitignore`.
+- **20/10, Luis**: informe actualizado a la corrida de Franco y capturas de MeshLab sobre el `.ply` nuevo.
+
+Antes de tocar algo: `git pull`, y si se cambia el informe en Overleaf, copiar el `.tex` al repo (y al revés).
 
 ## 1. Estado del pipeline
 
@@ -16,7 +32,8 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
 | 4.2.4 Paso al marco global | **Hecha** (incluye el paso por `R1`) | notebook "Pose global" |
 | 4.3 Fusión y optimización | **Hecha** en Open3D; `.ply` binario exportado | notebook "Fusión", `outputs/stitch_final.ply` |
 | 5 Medición métrica | **Hecha**, con error relativo contra la medida real | notebook "Medición métrica" |
-| Informe | **Final** (LaTeX, menos de 8 páginas, confirmado en Overleaf) | `informe/` |
+| Opcional: normales y mallado con Poisson | **Hecho** (malla de 74 102 vértices, a 1 mm de la nube) | `notebooks/opcional.ipynb`, `outputs/stitch_poisson.ply` |
+| Informe | **Final** (LaTeX, 7 páginas, incluye Poisson; igual al de Overleaf al 23/10) | `informe/` |
 | README, requirements, .gitignore | **Hechos** | raíz del repo |
 | Links de entrega (Drive) | **Hechos**: `.ply` y zip del dataset, públicos con el link | README, sección Entregables |
 
@@ -35,11 +52,15 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
   cátedra (Buda, 1080p). No se usa.
 - `imgs/`: capturas de `stereodemo` (par 13: SGBM bloque 5, SGBM bloque 9, CREStereo),
   `tiempos_disparidad.txt` y `meshlab/` (frente, costado y atrás de la nube final).
+- `notebooks/opcional.ipynb`: paso opcional, parte de `stitch_final.ply` sin modificarlo: normales, malla de
+  Poisson, figura `informe/img/poisson.png` y `outputs/stitch_poisson.ply`. Se abre igual que `tp2.ipynb`.
 - `outputs/stitch_final.ply`: nube final (4,7 MB, 175 791 puntos, binario). Es el entregable.
+- `outputs/stitch_poisson.ply`: malla de Poisson (5,7 MB, 74 102 vértices, 149 999 triángulos, binario).
 - `informe/`: `embon_sandri_yeger-tp2-informe.tex` y sus figuras en `img/` (se compila en Overleaf con pdfLaTeX).
-  La versión del repo es la final (igual a la de Overleaf al 22/10). Si se vuelve a tocar en
+  La versión del repo es la final (igual a la de Overleaf al 23/10). Si se vuelve a tocar en
   Overleaf, copiar el `.tex` al repo.
-  La copia de `../informe_tp2_overleaf/` y el zip son del 20/10 y están desactualizados.
+  En la carpeta de OneDrive de Luis, `../informe_tp2_overleaf.zip` y `../informe_tp2_preview.pdf`
+  son del 23/10 (al día); la carpeta `../informe_tp2_overleaf/` es vieja.
 - `code_examples/`: ejemplos de la cátedra (charuco y disparidad). No se tocan.
 - `README.md` y `requirements.txt` (versiones del entorno conda de WSL).
 
@@ -107,9 +128,24 @@ el notebook: 48 a 64 % según el par (43 % de los píxeles con punto 3D en el pa
 - El tablero reconstruido por estéreo queda 10,4 mm por encima de z = 0 del PnP (sesgo sistemático
   de ~2 % de la distancia, está en la discusión). Medir respecto al plano ajustado lo cancela.
 
+### 4.5 Malla de Poisson (opcional, `notebooks/opcional.ipynb`)
+- Normales con `estimate_normals` (radio 10 mm, 50 vecinos) y orientación consistente
+  (`orient_normals_consistent_tangent_plane`); el 76 % apunta hacia afuera del centroide (no es
+  100 % porque el peluche no es convexo).
+- Poisson `depth=8` (celdas de ~1,5 mm): 253 216 vértices → recorte por densidad (5 % menos sostenido)
+  240 555 → recorte con la caja 240 544 → Taubin (10 iteraciones) → decimación a **74 102 vértices
+  y 149 999 triángulos**.
+- Fidelidad: distancia vértice-nube de mediana 1,00 mm, percentil 95 1,96 mm, máximo 4,96 mm.
+- No es cerrada (base y hueco entre brazo y cuerpo abiertos a propósito). La medición se hace sobre
+  la nube, no sobre la malla.
+
 ## 5. Pendientes
 
-No queda nada obligatorio. Opcionales (por ahora no se hacen): ICP, mallado con Poisson.
+No queda nada obligatorio. Opcional que no se hizo: ICP.
+
+Detalles chicos que se pueden hacer:
+- El README no menciona `notebooks/opcional.ipynb` ni `outputs/stitch_poisson.ply` (estructura y entregables).
+- Confirmar con Franco la versión de OpenCV de su corrida: el informe dice OpenCV 4.13.
 
 Entrega en Drive (hecho el 22/10), carpeta
 [Dataset-tp2-reconstruccion-3d](https://drive.google.com/drive/folders/1YVeUoTn8iDGOQCYMBNBdYpeawiBg1VgT?usp=sharing),
