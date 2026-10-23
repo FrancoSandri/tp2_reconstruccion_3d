@@ -1,7 +1,7 @@
 % =====================================================================
 %  TP2 - Reconstrucción 3D  |  I308 Visión Artificial (UdeSA, 2026)
 %  Compilar con pdfLaTeX. Las figuras están en la carpeta img/.
-%  Números según la corrida del notebook del commit 85b7b44.
+%  Números según la corrida del notebook del commit 85b7b44; malla de Poisson según notebooks/opcional.ipynb.
 % =====================================================================
 \documentclass[10pt,a4paper,twocolumn]{article}
 
@@ -18,6 +18,7 @@
 \usepackage{subcaption}
 \usepackage{xcolor}
 \usepackage{microtype}
+\usepackage{placeins}    % \FloatBarrier: las figuras de resultados no pasan a la discusión
 \usepackage{titlesec}
 \usepackage[hidelinks]{hyperref}
 
@@ -56,7 +57,7 @@
 \vspace{-2pt}
 \begin{center}
 \begin{minipage}{0.93\textwidth}
-\small\noindent\textbf{Resumen.}\; Se presenta la reconstrucción tridimensional de un peluche a partir de 27 pares de imágenes tomados con una cámara estéreo en una órbita completa alrededor del objeto, apoyado sobre un tablero ChArUco que define el marco de referencia global. El sistema estéreo se calibró con la herramienta de la cátedra, con un error de reproyección de $1{,}25\px$, y su escala métrica se verificó de forma independiente triangulando las esquinas del tablero, cuyo lado se recupera con un error del $0{,}3$\,\%. Sobre cada par rectificado se calcula un mapa de disparidad con SGBM, cuyos parámetros se ajustaron de forma interactiva con \code{stereodemo} y se compararon con la red neuronal CREStereo. Cada mapa se convierte en una nube de puntos local mediante la matriz de reproyección $Q$, la pose de la cámara se estima con \code{solvePnP} sobre las esquinas del tablero y las nubes se transforman al marco global teniendo en cuenta la rotación introducida por la rectificación. La nube fusionada, de $9{,}3$ millones de puntos, se reduce a unos $176\,000$ mediante filtrado espacial, submuestreo por vóxeles y eliminación de puntos espurios en Open3D. Sobre el resultado se estima un alto de $280\mm$ y un ancho de $294\mm$, con errores relativos del $3{,}5$ y el $2{,}0$\,\% respecto de las medidas reales del objeto.
+\small\noindent\textbf{Resumen.}\; Se presenta la reconstrucción tridimensional de un peluche a partir de 27 pares de imágenes tomados con una cámara estéreo en una órbita completa alrededor del objeto, apoyado sobre un tablero ChArUco que define el marco de referencia global. El sistema estéreo se calibró con la herramienta de la cátedra, con un error de reproyección de $1{,}25\px$, y su escala métrica se verificó de forma independiente triangulando las esquinas del tablero, cuyo lado se recupera con un error del $0{,}3$\,\%. Sobre cada par rectificado se calcula un mapa de disparidad con SGBM, cuyos parámetros se ajustaron de forma interactiva con \code{stereodemo} y se compararon con la red neuronal CREStereo. Cada mapa se convierte en una nube de puntos local mediante la matriz de reproyección $Q$, la pose de la cámara se estima con \code{solvePnP} sobre las esquinas del tablero y las nubes se transforman al marco global teniendo en cuenta la rotación introducida por la rectificación. La nube fusionada, de $9{,}3$ millones de puntos, se reduce a unos $176\,000$ mediante filtrado espacial, submuestreo por vóxeles y eliminación de puntos espurios en Open3D. Sobre el resultado se estima un alto de $280\mm$ y un ancho de $294\mm$, con errores relativos del $3{,}5$ y el $2{,}0$\,\% respecto de las medidas reales del objeto. Como paso opcional, se obtuvo además una malla de la superficie mediante la reconstrucción de Poisson.
 \end{minipage}
 \end{center}
 \vspace{4pt}
@@ -200,6 +201,11 @@ Las nubes de todos los pares aceptados se acumulan en el marco global y se proce
 \end{enumerate}
 Los pasos 1 a 3 son los que exige la consigna; los pasos 4 y 5 se agregaron porque el tablero ocupa la base de la caja y algunos restos sobreviven al filtrado estadístico. El resultado se exporta como \code{.ply} binario con \code{o3d.io.write\_point\_cloud}.
 
+\subsection{Mallado de la superficie (opcional)}
+\label{sec:met-poisson}
+
+Como paso opcional se obtuvo una malla triangular a partir de la nube final, en un notebook aparte que no modifica la nube ni la medición. Primero se estimaron las normales con \code{estimate\_normals}: para cada punto se ajusta un plano a sus vecinos (radio de $10\mm$, hasta 50 vecinos) por análisis de componentes principales, y la normal es la dirección de menor varianza. Ese ajuste determina la dirección pero no el sentido, por lo que las normales se orientaron de forma consistente con \code{orient\_normals\_consistent\_tangent\_plane}, que propaga el sentido entre vecinos, y luego hacia el exterior del objeto. Con ellas se aplicó la reconstrucción de Poisson \cite{poisson} (\code{create\_from\_point\_cloud\_poisson}, profundidad 8, celdas de aproximadamente $1{,}5\mm$), que busca una función indicadora del interior cuyo gradiente aproxime el campo de normales y extrae la superficie como una isosuperficie de esa función. Como Poisson siempre genera una superficie cerrada, completa también las zonas sin datos, como la base del objeto; para eliminarlas se descartó el 5\,\% de los vértices con menor densidad de puntos de soporte y se recortó la malla con la caja que encierra la nube. Por último se aplicó un suavizado de Taubin \cite{taubin}, que atenúa el ruido sin contraer la superficie, y se redujo la malla a $150\,000$ triángulos.
+
 \subsection{Medición métrica}
 \label{sec:met-medicion}
 
@@ -242,7 +248,7 @@ La Fig.~\ref{fig:rect} muestra un par antes y después de rectificar: la rectifi
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.78\textwidth]{rectificacion.png}
+\includegraphics[width=0.62\textwidth]{rectificacion.png}
 \caption{Par 13 antes (arriba) y después (abajo) de la rectificación. En las imágenes rectificadas los puntos correspondientes se encuentran en la misma fila, lo que se aprecia con las líneas horizontales de referencia.}
 \label{fig:rect}
 \end{figure*}
@@ -254,7 +260,7 @@ La Fig.~\ref{fig:disp} presenta los mapas de disparidad de SGBM para tres pares 
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.85\textwidth]{disparidad.png}
+\includegraphics[width=0.72\textwidth]{disparidad.png}
 \caption{Arriba: imagen izquierda rectificada de tres pares. Abajo: disparidad calculada con SGBM (en blanco, píxeles sin disparidad válida) y porcentaje de píxeles válidos.}
 \label{fig:disp}
 \end{figure*}
@@ -265,7 +271,7 @@ Dentro de SGBM, la misma comparación fijó el tamaño de bloque en 5 píxeles. 
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.85\textwidth]{metodos.png}
+\includegraphics[width=0.75\textwidth]{metodos.png}
 \caption{Disparidad del par 13 obtenida en \code{stereodemo} con SGBM (bloques de 5 y 9 píxeles) y con CREStereo, junto con el tiempo de cómputo. El color violeta oscuro indica disparidad no válida en SGBM.}
 \label{fig:metodos}
 \end{figure*}
@@ -321,21 +327,33 @@ Nube global (24 pares) & 9\,282\,487 & 100\,\%\\
 \label{tab:fusion}
 \end{table}
 
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=0.82\textwidth]{optimizacion.png}
+\includegraphics[width=\columnwidth]{optimizacion.png}
 \caption{Vista frontal ($x$--$z$) de la nube global antes de optimizar (izquierda; nótese la escala), después del filtrado espacial (centro) y al final del proceso (derecha). El eje $z$ crece hacia el interior del tablero.}
 \label{fig:opt}
-\end{figure*}
+\end{figure}
 
 La Fig.~\ref{fig:meshlab} muestra la nube final abierta en MeshLab, lo que verifica la validez del archivo exportado. La reconstrucción cubre el objeto en sus 360°, incluida la espalda, gracias a que el tablero ChArUco permitió estimar la pose incluso desde los lados en que el peluche lo ocluye parcialmente.
 
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=0.9\textwidth]{meshlab.png}
+\includegraphics[width=\columnwidth]{meshlab.png}
 \caption{Nube final optimizada visualizada en MeshLab: vistas frontal, lateral y posterior.}
 \label{fig:meshlab}
-\end{figure*}
+\end{figure}
+
+\subsection{Malla de Poisson}
+\label{sec:res-poisson}
+
+La Fig.~\ref{fig:poisson} muestra la malla obtenida, de $74\,102$ vértices y unos $150\,000$ triángulos, exportada como un archivo \code{.ply} aparte de $5{,}7\,\mathrm{MB}$. La malla recupera la forma completa del objeto, incluida la espalda, y se mantiene próxima a los datos: la distancia de cada vértice al punto más cercano de la nube tiene una mediana de $1{,}0\mm$ y un percentil 95 de $2{,}0\mm$, del orden del tamaño de vóxel. La vista sombreada pone de manifiesto una superficie rugosa, porque la malla reproduce el ruido de la nube (el pelaje y el leve engrosamiento debido a la fusión de vistas), que el suavizado atenúa pero no elimina. Además, la malla no es cerrada: la base y el hueco entre el brazo y el cuerpo, que ninguna cámara observó con claridad, quedan abiertos porque el recorte por densidad elimina la superficie que Poisson completa sin datos que la sustenten. La medición de la sección siguiente se realizó sobre la nube de puntos, no sobre la malla.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{poisson.png}
+\caption{Malla obtenida con la reconstrucción de Poisson, vista de frente, de costado y de espalda: con el color de la nube (arriba) y en gris con sombreado (abajo), que deja ver la geometría.}
+\label{fig:poisson}
+\end{figure}
 
 \subsection{Medición métrica}
 \label{sec:res-medicion}
@@ -364,9 +382,9 @@ El pipeline produce una reconstrucción completa y métrica del objeto, pero el 
 
 \textbf{Poses.} El par~19 se aceptó con una pose menos confiable (error de reproyección de $1{,}80\px$, tras descartar 12 de 38 esquinas). El par~1 se encuentra en el límite de detección: según la versión de OpenCV se detectan 10 esquinas, y el par se acepta, o menos de ocho, y se descarta. Incluirlo o no modifica el alto en sólo $0{,}2\mm$ ($279{,}9$ frente a $279{,}7\mm$), lo que indica que el resultado no depende de pares individuales. Un refinamiento de las poses con ICP entre nubes vecinas, o una optimización conjunta de todas ellas, reduciría el efecto de los pares menos confiables y del sesgo entre escalas.
 
-\textbf{Conclusión.} El sistema estéreo calibrado, junto con el tablero ChArUco como referencia común, permitió reconstruir el objeto en sus 360° y medirlo con escala métrica, validada con un error del $0{,}3$\,\% en el lado del casillero, con errores relativos de $3{,}5$\,\% en el alto y $2{,}0$\,\% en el ancho respecto de las medidas reales. Como mejoras se proponen recalibrar cubriendo mejor los bordes del sensor, refinar las poses con ICP y obtener una superficie continua mediante la reconstrucción de Poisson.
+\textbf{Conclusión.} El sistema estéreo calibrado, junto con el tablero ChArUco como referencia común, permitió reconstruir el objeto en sus 360° y medirlo con escala métrica: el lado del casillero se recupera con un error del $0{,}3$\,\% y las dimensiones del objeto, con errores relativos de $3{,}5$\,\% en el alto y $2{,}0$\,\% en el ancho respecto de las medidas reales. La reconstrucción de Poisson permitió además obtener una superficie continua, fiel a la nube dentro de unos $2\mm$. Como mejoras se proponen recalibrar cubriendo mejor los bordes del sensor y refinar las poses con ICP, lo que reduciría el engrosamiento de las superficies y, con él, la rugosidad de la malla.
 
-\begin{thebibliography}{9}\footnotesize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}
+\begin{thebibliography}{99}\footnotesize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}
 \bibitem{hz} R. Hartley y A. Zisserman, \emph{Multiple View Geometry in Computer Vision}, 2.ª ed., Cambridge University Press, 2004.
 \bibitem{zhang} Z. Zhang, ``A flexible new technique for camera calibration'', \emph{IEEE TPAMI}, 22(11):1330--1334, 2000.
 \bibitem{sgbm} H. Hirschmüller, ``Stereo processing by semiglobal matching and mutual information'', \emph{IEEE TPAMI}, 30(2):328--341, 2008.
@@ -375,6 +393,8 @@ El pipeline produce una reconstrucción completa y métrica del objeto, pero el 
 \bibitem{ippe} T. Collins y A. Bartoli, ``Infinitesimal plane-based pose estimation'', \emph{IJCV}, 109(3):252--286, 2014.
 \bibitem{open3d} Q.-Y. Zhou, J. Park y V. Koltun, ``Open3D: A modern library for 3D data processing'', \emph{arXiv:1801.09847}, 2018.
 \bibitem{dbscan} M. Ester et al., ``A density-based algorithm for discovering clusters in large spatial databases with noise'', \emph{KDD}, 1996.
+\bibitem{poisson} M. Kazhdan, M. Bolitho y H. Hoppe, ``Poisson surface reconstruction'', \emph{Eurographics Symposium on Geometry Processing}, 2006.
+\bibitem{taubin} G. Taubin, ``A signal processing approach to fair surface design'', \emph{SIGGRAPH}, 1995.
 \end{thebibliography}
 
 \end{document}
