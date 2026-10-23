@@ -155,3 +155,28 @@ def plot_views(pcd, title, n=120_000):
     ax[2].invert_yaxis()
     fig.suptitle(f"{title}: {len(P)} puntos")
     plt.show()
+
+
+# render de una malla con matplotlib: proyección ortográfica, sombreado lambertiano y algoritmo del pintor.
+# R lleva el mundo a la vista: columnas de pantalla (x, y) y profundidad (crece alejándose del observador)
+def plot_mesh(ax, mesh, R, colored=True, light=(0.3, -0.5, -1.0)):
+    from matplotlib.collections import PolyCollection
+    V = np.asarray(mesh.vertices) @ R.T
+    F = np.asarray(mesh.triangles)
+    tri = V[F]
+
+    # normal de cada triángulo y sombreado (de dos caras, para no depender de la orientación)
+    n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-12
+    light = np.asarray(light) / np.linalg.norm(light)
+    shade = 0.25 + 0.75 * np.abs(n @ light)
+
+    col = np.asarray(mesh.vertex_colors)[F].mean(axis=1) if colored else np.full((len(F), 3), 0.75)
+    col = np.clip(col * shade[:, None], 0, 1)
+
+    order = np.argsort(-tri[:, :, 2].mean(axis=1))     # primero los triángulos más lejanos
+    ax.add_collection(PolyCollection(tri[order, :, :2], facecolors=col[order], edgecolors="none"))
+    ax.set_xlim(V[:, 0].min(), V[:, 0].max())
+    ax.set_ylim(V[:, 1].max(), V[:, 1].min())          # y de pantalla hacia arriba
+    ax.set_aspect("equal")
+    ax.axis("off")
