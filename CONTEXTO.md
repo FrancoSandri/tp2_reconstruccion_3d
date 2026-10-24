@@ -14,7 +14,7 @@ Repo: https://github.com/FrancoSandri/tp2_reconstruccion_3d (rama `main`).
   `outputs/stitch_poisson.ply`, y el informe con la malla de Poisson: subsección en Metodología y en
   Resultados, figura 10, referencias de Poisson y Taubin, conclusión actualizada. Para que las
   figuras no quedaran después de las referencias se pasaron optimización, MeshLab y Poisson a una
-  columna; el informe quedó en **7 páginas**. Ya está subido a Overleaf.
+  columna; el informe quedó en **6 páginas**. Ya está subido a Overleaf.
 - **22/10, Franco**: links de entrega en Drive y README.
 - **21/10, Luis**: README, `requirements.txt` y `.gitignore`.
 - **20/10, Luis**: informe actualizado a la corrida de Franco y capturas de MeshLab sobre el `.ply` nuevo.
@@ -33,7 +33,7 @@ Antes de tocar algo: `git pull`, y si se cambia el informe en Overleaf, copiar e
 | 4.3 Fusión y optimización | **Hecha** en Open3D; `.ply` binario exportado | notebook "Fusión", `outputs/stitch_final.ply` |
 | 5 Medición métrica | **Hecha**, con error relativo contra la medida real | notebook "Medición métrica" |
 | Opcional: normales y mallado con Poisson | **Hecho** (malla de 74 102 vértices, a 1 mm de la nube) | `notebooks/opcional.ipynb`, `outputs/stitch_poisson.ply` |
-| Informe | **Final** (LaTeX, 7 páginas, incluye Poisson; igual al de Overleaf al 23/10) | `informe/` |
+| Informe | **Final** (LaTeX, 6 páginas, incluye Poisson; igual al de Overleaf al 23/10) | `informe/` |
 | README, requirements, .gitignore | **Hechos** | raíz del repo |
 | Links de entrega (Drive) | **Hechos**: `.ply` y zip del dataset, públicos con el link | README, sección Entregables |
 

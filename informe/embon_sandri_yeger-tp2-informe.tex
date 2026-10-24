@@ -36,6 +36,7 @@
 \renewcommand{\dblfloatpagefraction}{0.85}
 \setlength{\parskip}{0pt}
 \setlength{\emergencystretch}{2em}   % evita espacios enormes con nombres de función largos
+\widowpenalty=10000\clubpenalty=10000   % sin líneas sueltas al pie o al comienzo de una columna
 \AtBeginDocument{\setlength{\abovedisplayskip}{4pt}\setlength{\belowdisplayskip}{4pt}\setlength{\abovedisplayshortskip}{2pt}\setlength{\belowdisplayshortskip}{3pt}}
 
 \newcommand{\px}{\,\mathrm{px}}
@@ -120,8 +121,7 @@ Se utilizó un conjunto propio, capturado con la cámara estéreo ELP-USB3D1080P
 
 El pipeline se implementó en Python con OpenCV~4.13 y Open3D~0.20, en un notebook con funciones auxiliares en un módulo aparte. La Fig.~\ref{fig:pipeline} resume sus etapas, que se describen a continuación.
 
-\begin{figure}[!t]
-\centering\footnotesize
+\begin{center}\footnotesize
 \setlength{\fboxsep}{2pt}
 \begin{tabular}{c}
 \fbox{Calibración y rectificación estéreo (una vez)}\\[-1pt] $\downarrow$\\[-1pt]
@@ -131,9 +131,9 @@ El pipeline se implementó en Python con OpenCV~4.13 y Open3D~0.20, en un notebo
 \fbox{Fusión, filtrado y exportación \code{.ply}}\\[-1pt] $\downarrow$\\[-1pt]
 \fbox{Medición métrica}
 \end{tabular}
-\caption{Etapas del pipeline de reconstrucción.}
+\captionof{figure}{Etapas del pipeline de reconstrucción.}
 \label{fig:pipeline}
-\end{figure}
+\end{center}
 
 \subsection{Calibración y rectificación}
 \label{sec:met-calib}
@@ -147,7 +147,7 @@ Además se validó la calibración con datos independientes, las capturas del ob
 
 Se utilizó Semi-Global Block Matching (SGBM) \cite{sgbm}, que compara bloques de píxeles a lo largo de la fila y agrega el costo en varias direcciones con penalizaciones $P_1$ y $P_2$ a los cambios de disparidad entre vecinos, lo que produce mapas más coherentes que el block matching local en zonas de poca textura. Los parámetros dependen de la cámara y de la escena, no de cada imagen, por lo que se fijaron una única vez para los 27 pares (Tabla~\ref{tab:sgbm}). Se ajustaron de forma interactiva con la herramienta \code{stereodemo}, que muestra la disparidad y la nube resultante a medida que se modifican, sobre pares representativos. El rango de búsqueda se dedujo de la geometría: con $fB\approx24\,422\px\cdot\mathrm{mm}$, la Ec.~\eqref{eq:depth} indica que el objeto, a $25$--$60\,\mathrm{cm}$ de la cámara, tiene disparidades de $40$--$110\px$; el intervalo $[8,152)\px$ cubre profundidades de $16\,\mathrm{cm}$ a $3\,\mathrm{m}$. A modo de comparación se evaluó también CREStereo \cite{crestereo}, una red neuronal de \emph{matching} estéreo incluida en \code{stereodemo}. OpenCV devuelve la disparidad multiplicada por 16 en enteros; se la divide por 16 y se descartan los valores no válidos.
 
-\begin{table}[!t]
+\begin{table}[!htb]
 \centering\footnotesize
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}lll@{}}
@@ -193,7 +193,7 @@ y la posición de la cámara en el mundo es $\mathbf{C}=-R_{wc}\T\mathbf{t}$. Au
 
 Las nubes de todos los pares aceptados se acumulan en el marco global y se procesan con Open3D \cite{open3d} en cinco pasos:
 \begin{enumerate}\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
-\item \textbf{Filtrado espacial.} Se construye una caja (\code{OrientedBoundingBox}) alineada con el tablero que encierra el objeto ($x\in[40,360]$, $y\in[80,500]$, $z\in[-360,-4]\mm$), con límites elegidos a partir de las dimensiones del tablero y de la nube, y se conservan los puntos interiores (\code{get\_point\_indices\_within\_bounding\_box}, \code{select\_by\_index}).
+\item {\raggedright \textbf{Filtrado espacial.} Se construye una caja (\code{OrientedBoundingBox}) alineada con el tablero que encierra el objeto ($x\in[40,360]$, $y\in[80,500]$, $z\in[-360,-4]\mm$), con límites elegidos a partir de las dimensiones del tablero y de la nube, y se conservan los puntos interiores (\code{get\_point\_indices\_within\_bounding\_box}, \code{select\_by\_index}).\par}   % sin justificar: los nombres de función largos dejan huecos enormes
 \item \textbf{Submuestreo} con \code{voxel\_down\_sample} de $2\mm$: las vistas se superponen y la nube es muy redundante; $2\mm$ conserva el detalle del pelaje y de las orejas.
 \item \textbf{Eliminación de outliers}: se aplica primero un filtro estadístico, \code{remove\_statistical\_outlier} (30 vecinos, $1{,}5\,\sigma$), y luego uno por radio, \code{remove\_radius\_outlier} (al menos 12 vecinos en $6\mm$), para los puntos aislados.
 \item \textbf{Remoción del plano del tablero}: \code{segment\_plane} (RANSAC, umbral de $10\mm$) identifica el tablero que queda dentro de la caja y se lo elimina.
@@ -218,13 +218,7 @@ El resultado es métrico, y no definido salvo un factor de escala como en la rec
 \label{sec:resultados}
 % =====================================================================
 
-\subsection{Calibración y rectificación}
-\label{sec:res-calib}
-
-La calibración estéreo repetida en el notebook utilizó 29 de los 30 pares: en el par~7 no se detecta el tablero en la imagen izquierda, probablemente por un reflejo sobre los casilleros centrales. El \textbf{error de reproyección resultó de $1{,}25\px$}, comparable al de $1{,}06\px$ que obtiene la cátedra con su propio conjunto de datos. Los parámetros coinciden con los de la herramienta ($f_x$ izquierda de $402{,}05$ frente a $403{,}15\px$, una diferencia del $0{,}3$\,\%; línea de base de $60{,}18$ frente a $60{,}17\mm$), y la Tabla~\ref{tab:calib} resume los valores utilizados. La rotación entre cámaras es de apenas $0{,}39^\circ$ y la traslación es prácticamente horizontal, como corresponde a una cámara estéreo de cuerpo rígido. Tras la rectificación ambas cámaras comparten $f=405{,}9\px$ y $(c_x,c_y)=(631{,}0;\,352{,}4)$, de modo que $fB=24\,422\px\cdot\mathrm{mm}$.
-
-\begin{table}[!t]
-\centering\footnotesize
+\begin{center}\footnotesize
 \begin{tabular}{@{}lcc@{}}
 \toprule
  & Izquierda & Derecha\\
@@ -238,43 +232,49 @@ $R$ & \multicolumn{2}{c}{rotación de $0{,}39^\circ$}\\
 Error RMS & \multicolumn{2}{c}{$1{,}25\px$ (29 pares)}\\
 \bottomrule
 \end{tabular}
-\caption{Parámetros de la calibración estéreo ($1280\times720$) obtenidos con la herramienta de la cátedra. Los coeficientes tangenciales son menores que $2\cdot10^{-3}$. El error RMS corresponde a la recalibración en el notebook con las mismas imágenes.}
+\captionof{table}{Parámetros de la calibración estéreo ($1280\times720$) obtenidos con la herramienta de la cátedra. Los coeficientes tangenciales son menores que $2\cdot10^{-3}$. El error RMS corresponde a la recalibración en el notebook con las mismas imágenes.}
 \label{tab:calib}
-\end{table}
+\end{center}
+
+% Figuras a todo el ancho de 3.1 y 3.2: se definen acá para que queden arriba de la página siguiente
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.52\textwidth]{rectificacion.png}
+\caption{Par 13 antes (arriba) y después (abajo) de la rectificación. En las imágenes rectificadas los puntos correspondientes se encuentran en la misma fila, lo que se aprecia con las líneas horizontales de referencia.}
+\label{fig:rect}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.66\textwidth]{disparidad.png}
+\caption{Arriba: imagen izquierda rectificada de tres pares. Abajo: disparidad calculada con SGBM (en blanco, píxeles sin disparidad válida) y porcentaje de píxeles válidos.}
+\label{fig:disp}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.68\textwidth]{metodos.png}
+\caption{Disparidad del par 13 obtenida en \code{stereodemo} con SGBM (bloques de 5 y 9 píxeles) y con CREStereo, junto con el tiempo de cómputo. El color violeta oscuro indica disparidad no válida en SGBM.}
+\label{fig:metodos}
+\end{figure*}
+
+\subsection{Calibración y rectificación}
+\label{sec:res-calib}
+
+La calibración estéreo repetida en el notebook utilizó 29 de los 30 pares: en el par~7 no se detecta el tablero en la imagen izquierda, probablemente por un reflejo sobre los casilleros centrales. El \textbf{error de reproyección resultó de $1{,}25\px$}, comparable al de $1{,}06\px$ que obtiene la cátedra con su propio conjunto de datos. Los parámetros coinciden con los de la herramienta ($f_x$ izquierda de $402{,}05$ frente a $403{,}15\px$, una diferencia del $0{,}3$\,\%; línea de base de $60{,}18$ frente a $60{,}17\mm$), y la Tabla~\ref{tab:calib} resume los valores utilizados. La rotación entre cámaras es de apenas $0{,}39^\circ$ y la traslación es prácticamente horizontal, como corresponde a una cámara estéreo de cuerpo rígido. Tras la rectificación ambas cámaras comparten $f=405{,}9\px$ y $(c_x,c_y)=(631{,}0;\,352{,}4)$, de modo que $fB=24\,422\px\cdot\mathrm{mm}$.
 
 La validación con el tablero ChArUco sobre las capturas del objeto dio un error de reproyección de $0{,}48\px$ en la imagen izquierda, donde se estima la pose, y de $1{,}31\px$ en la derecha, a la que la pose se traslada con $(R,\mathbf{T})$, un valor coherente con el error de calibración. El lado de los casilleros triangulados resultó de $42{,}13\mm$ (mediana; media $42{,}11\pm1{,}32\mm$), frente a $42{,}0\mm$ reales, un error del $0{,}3$\,\% que confirma que la reconstrucción es métrica.
 
 La Fig.~\ref{fig:rect} muestra un par antes y después de rectificar: la rectificación corrige la leve distorsión de la lente y alinea las filas, de manera que los mismos detalles caen sobre las líneas horizontales en ambas imágenes. Al medir la diferencia vertical entre esquinas correspondientes se encontró, sin embargo, un desfasaje residual de $0{,}2$ a $1{,}5\px$, siempre del mismo signo y mayor en los pares en que el tablero aparece cerca del borde de la imagen.
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.62\textwidth]{rectificacion.png}
-\caption{Par 13 antes (arriba) y después (abajo) de la rectificación. En las imágenes rectificadas los puntos correspondientes se encuentran en la misma fila, lo que se aprecia con las líneas horizontales de referencia.}
-\label{fig:rect}
-\end{figure*}
 
 \subsection{Disparidad}
 \label{sec:res-disp}
 
 La Fig.~\ref{fig:disp} presenta los mapas de disparidad de SGBM para tres pares tomados desde posiciones distintas. El objeto se recupera casi completo y bien separado del fondo, con disparidades de 40 a $110\px$, mientras que el piso muestra el gradiente suave esperable para un plano que se aleja. La fracción de píxeles con disparidad válida es del 48 al 64\,\%; los huecos se concentran en la pared blanca, que carece de textura, en el ojo del peluche, cuyo brillo especular difiere entre ambas cámaras, en las zonas ocluidas para una de las cámaras (por ejemplo, entre los brazos y el cuerpo) y en la franja izquierda de la imagen, donde no existe correspondencia posible.
 
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.72\textwidth]{disparidad.png}
-\caption{Arriba: imagen izquierda rectificada de tres pares. Abajo: disparidad calculada con SGBM (en blanco, píxeles sin disparidad válida) y porcentaje de píxeles válidos.}
-\label{fig:disp}
-\end{figure*}
-
 Como método de \emph{matching} se adoptó \textbf{SGBM}, tras compararlo en \code{stereodemo} con la red neuronal CREStereo sobre el par 13 (Fig.~\ref{fig:metodos}). CREStereo produce un mapa más denso, sin huecos y con contornos nítidos, pero presenta dos desventajas que motivaron su descarte. La primera es el costo: requiere $4{,}9\,\mathrm{s}$ por par, unas 30 veces más que SGBM ($0{,}14$ a $0{,}17\,\mathrm{s}$), aun operando a una resolución reducida de $640\times480$. La segunda, más relevante para una medición métrica, es que asigna disparidad a regiones sin textura, como la pared, en las que no existe información para estimarla: interpola valores plausibles que no provienen de una correspondencia real. SGBM, en cambio, deja esas regiones sin valor, de modo que cada punto de la nube surge de una correspondencia efectivamente observada, y los huecos que deja se cubren con las otras 23 vistas.
 
 Dentro de SGBM, la misma comparación fijó el tamaño de bloque en 5 píxeles. Un bloque de 9 produce un mapa más suave, pero ensancha los bordes del objeto y pierde detalles finos; con 5 se conservan los contornos de las orejas a costa de pequeños huecos, que la redundancia entre vistas compensa. El tiempo de cómputo no depende apreciablemente del tamaño de bloque.
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.75\textwidth]{metodos.png}
-\caption{Disparidad del par 13 obtenida en \code{stereodemo} con SGBM (bloques de 5 y 9 píxeles) y con CREStereo, junto con el tiempo de cómputo. El color violeta oscuro indica disparidad no válida en SGBM.}
-\label{fig:metodos}
-\end{figure*}
 
 \subsection{Nube local, poses y marco global}
 \label{sec:res-pose}
@@ -292,14 +292,14 @@ La Fig.~\ref{fig:charuco} muestra la detección del tablero en una de las captur
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.92\columnwidth]{charuco_pose.png}
+\includegraphics[width=0.85\columnwidth]{charuco_pose.png}
 \caption{Esquinas ChArUco detectadas (verde, con su identificador) y ejes del marco global proyectados con la pose estimada (par 22).}
 \label{fig:charuco}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.95\columnwidth]{poses.png}
+\includegraphics[width=0.68\columnwidth]{poses.png}
 \caption{Poses estimadas de la cámara izquierda en el marco del tablero (gris), con su número de par, y nube del par 13 transformada al marco global.}
 \label{fig:poses}
 \end{figure}
@@ -350,7 +350,7 @@ La Fig.~\ref{fig:poisson} muestra la malla obtenida, de $74\,102$ vértices y un
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\columnwidth]{poisson.png}
+\includegraphics[width=0.84\columnwidth]{poisson.png}
 \caption{Malla obtenida con la reconstrucción de Poisson, vista de frente, de costado y de espalda: con el color de la nube (arriba) y en gris con sombreado (abajo), que deja ver la geometría.}
 \label{fig:poisson}
 \end{figure}
@@ -362,11 +362,12 @@ Sobre la nube final se obtuvo un \textbf{alto de $279{,}7\mm$} (máximo $286{,}0
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\columnwidth]{medicion.png}
+\includegraphics[width=0.86\columnwidth]{medicion.png}
 \caption{Medición sobre la nube final. Izquierda: altura de cada punto sobre el plano del tablero y alto estimado (percentil 99,5). Derecha: huella sobre el tablero y rectángulo de área mínima.}
 \label{fig:medicion}
 \end{figure}
 
+\FloatBarrier
 \subsection{Discusión}
 \label{sec:discusion}
 
